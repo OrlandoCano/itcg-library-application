@@ -1,74 +1,50 @@
-import React, { Component } from 'react'
-import ApiService from "../../service/ApiService";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ApiService from '../../service/ApiService';
 
-class AddBookComponent extends Component{
+const AddBookComponent = () => {
+    const [book, setBook] = useState({ isbn: '', name: '', author: '', releaseDate: '', editorial: '' });
+    const navigate = useNavigate();
 
-    constructor(props){
-        super(props);
-        this.state ={
-            id: null,
-            isbn: '',
-            name: '',
-            author: '',
-            releaseDate: '',
-            editorial: ''
-        }
-        this.saveBook = this.saveBook.bind(this);
-    }
+    const handleChange = (e) => {
+        setBook({ ...book, [e.target.name]: e.target.value });
+    };
 
-    saveBook = (e) => {
+    const saveBook = (e) => {
         e.preventDefault();
-        let book = {id: this.state.id, 
-                    isbn: this.state.isbn, 
-                    name: this.state.name,
-                    author: this.state.author, 
-                    releaseDate: this.state.releaseDate, 
-                    editorial: this.state.editorial};
-        ApiService.addBook(book)
-            .then(res => {
-                this.setState({message : 'Book added successfully.'});
-                this.props.history.push('/books');
-            });
-    }
+        ApiService.addBook(book).then(() => {
+            navigate('/books');
+        });
+    };
 
-    onChange = (e) =>
-        this.setState({ [e.target.name]: e.target.value });
-
-    render() {
-        return(
-            <div>
-                <h2 className="text-center">Add Book</h2>
-                <form>
+    return (
+        <div>
+            <h2 className="text-center">Add Book</h2>
+            <form>
                 <div className="form-group">
                     <label>ISBN:</label>
-                    <input type="text" placeholder="ISBN" name="isbn" className="form-control" value={this.state.isbn} onChange={this.onChange}/>
+                    <input type="text" name="isbn" className="form-control" value={book.isbn} onChange={handleChange} />
                 </div>
-
                 <div className="form-group">
                     <label>Book's name:</label>
-                    <input placeholder="book's name" name="name" className="form-control" value={this.state.name} onChange={this.onChange}/>
+                    <input name="name" className="form-control" value={book.name} onChange={handleChange} />
                 </div>
-
                 <div className="form-group">
                     <label>Author:</label>
-                    <input placeholder="author" name="author" className="form-control" value={this.state.author} onChange={this.onChange}/>
+                    <input name="author" className="form-control" value={book.author} onChange={handleChange} />
                 </div>
-
                 <div className="form-group">
-                    <label>Release Date</label>
-                    <input type="Date" placeholder="Release Date" name="releaseDate" className="form-control" value={this.state.releaseDate} onChange={this.onChange}/>
+                    <label>Release Date:</label>
+                    <input type="date" name="releaseDate" className="form-control" value={book.releaseDate} onChange={handleChange} />
                 </div>
-
                 <div className="form-group">
                     <label>Editorial:</label>
-                    <input type="text" placeholder="Editorial" name="editorial" className="form-control" value={this.state.editorial} onChange={this.onChange}/>
+                    <input type="text" name="editorial" className="form-control" value={book.editorial} onChange={handleChange} />
                 </div>
-
-                <button className="btn btn-success" onClick={this.saveBook}>Save</button>
+                <button className="btn btn-success" onClick={saveBook}>Save</button>
             </form>
-    </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 export default AddBookComponent;

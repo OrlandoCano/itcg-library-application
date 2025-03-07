@@ -1,89 +1,54 @@
-import React, { Component } from 'react'
-import ApiService from "../../service/ApiService";
-import moment from "moment";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ApiService from '../../service/ApiService';
+import moment from 'moment';
 
-class ListBookComponent extends Component {
+const ListBookComponent = () => {
+    const [books, setBooks] = useState([]);
+    const navigate = useNavigate();
 
-    constructor(props) {
-        super(props)
-        this.state = {
-            books: [],
-            message: null
-        }
-        this.deleteBook = this.deleteBook.bind(this);
-        this.editBook = this.editBook.bind(this);
-        this.addBook = this.addBook.bind(this);
-        this.reloadBookList = this.reloadBookList.bind(this);
-    }
+    useEffect(() => {
+        ApiService.fetchBooks().then((res) => {
+            setBooks(res.data);
+        });
+    }, []);
 
-    componentDidMount() {
-        this.reloadBookList();
-    }
+    const deleteBook = (bookId) => {
+        ApiService.deleteBook(bookId).then(() => {
+            setBooks(books.filter(book => book.id !== bookId));
+        });
+    };
 
-    reloadBookList() {
-        ApiService.fetchBooks()
-            .then((res) => {
-                this.setState({books: res.data})
-            });
-    }
-
-    deleteBook(bookId) {
-        ApiService.deleteBook(bookId)
-           .then(res => {
-               this.setState({message : 'Book deleted successfully.'});
-               this.setState({books: this.state.books.filter(book => book.id !== bookId)});
-           })
-
-    }
-
-    editBook(id) {
-        window.localStorage.setItem("bookId", id);
-        this.props.history.push('/edit-book');
-    }
-
-    addBook() {
-        window.localStorage.removeItem("bookId");
-        this.props.history.push('/add-book');
-    }
-
-    render() {
-        return (
-            <div>
-                <h2 className="text-center">Book Details</h2>
-                <button className="btn btn-danger" style={{width:'100px'}} onClick={() => this.addBook()}> Add Book</button>
-                <table className="table table-striped">
-                    <thead>
-                        <tr>
-                            <th className="hidden">Id</th>
-                            <th>ISBN</th>
-                            <th>Name</th>
-                            <th>Author</th>
-                            <th>Release Date</th>
-                            <th>Editorial</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            this.state.books.map(
-                                book =>
-                                    <tr key={book.id}>
-                                        <td>{book.isbn}</td>
-                                        <td>{book.name}</td>
-                                        <td>{book.author}</td>
-                                        <td>{moment(new Date(book.releaseDate)).format('MM/DD/YYYY')}</td>
-                                        <td>{book.editorial}</td>
-                                            <td><button className="btn btn-success" onClick={() => this.deleteBook(book.id)}> Delete</button></td>
-                                            <td><button className="btn btn-success" onClick={() => this.editBook(book.id)} style={{marginLeft: '10px'}}> Edit</button></td>
-                                    </tr>
-                            )
-                        }
-                    </tbody>
-                </table>
-
-            </div>
-        );
-    }
-
-}
+    return (
+        <div>
+            <h2 className="text-center">Book Details</h2>
+            <button className="btn btn-success" onClick={() => navigate('/add-book')}>Add Book</button>
+            <table className="table table-striped">
+                <thead>
+                <tr>
+                    <th>ISBN</th>
+                    <th>Name</th>
+                    <th>Author</th>
+                    <th>Release Date</th>
+                    <th>Editorial</th>
+                </tr>
+                </thead>
+                <tbody>
+                {books.map(book => (
+                    <tr key={book.id}>
+                        <td>{book.isbn}</td>
+                        <td>{book.name}</td>
+                        <td>{book.author}</td>
+                        <td>{moment(book.releaseDate).format('MM/DD/YYYY')}</td>
+                        <td>{book.editorial}</td>
+                        <td><button className="btn btn-danger" onClick={() => deleteBook(book.id)}>Delete</button></td>
+                        <td><button className="btn btn-primary" onClick={() => { window.localStorage.setItem("bookId", book.id); navigate('/edit-book'); }}>Edit</button></td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
 
 export default ListBookComponent;
